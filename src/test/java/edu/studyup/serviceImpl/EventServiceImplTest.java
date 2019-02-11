@@ -71,8 +71,8 @@ class EventServiceImplTest {
 		assertEquals("12345678912345678912", DataStorage.eventData.get(eventID).getName());
 	}
 	
-	@Test	//ACTUAL BUG 2: Missing if condition to check for past events in the function
-	void BUG_2_testgetActiveEvents() {
+	@Test	//ACTUAL BUG 2: Missing if condition to eliminate out past events in the function
+	void BUG_2_testgetActiveEvents_GoodCase() {
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
 		student7.setLastName("Nguyen");
@@ -98,8 +98,8 @@ class EventServiceImplTest {
 		assertEquals(1, active_event_list.size());
 	}
 	
-	@Test
-	void BUG_3_testaddStudentToEvent() throws Exception {
+	@Test	//ACTUAL BUG 3: missing conditions to ensure that there are at most 2 students for each event.
+	void BUG_3_testaddStudentToEvent_badCase() throws Exception {
 		//Create Event1 (PAST) - to utilize function getPastEvents since we know it is 100% bug free (told by prompt).
 		Event event1 = new Event();
 		event1.setEventID(1);
@@ -113,22 +113,40 @@ class EventServiceImplTest {
 		event1.setLocation(location1);
 		DataStorage.eventData.put(event1.getEventID(), event1);
 
+		// Create Student 1
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
 		student7.setLastName("Nguyen");
 		student7.setEmail("nhannguyen@email.com");
 		student7.setId(7);
 		
-		eventServiceImpl.addStudentToEvent(student7,1);	// Add student ID 7 to event ID 1
-		List<Event> past_event_list = eventServiceImpl.getPastEvents();
-		List<Student> student_list_for_event_id_1 = past_event_list.get(0).getStudents();
-		assertEquals(1,student_list_for_event_id_1.size());
+		// Create Student 2
+		Student student8 = new Student();
+		student8.setFirstName("Simon");
+		student8.setLastName("Tabligan");
+		student8.setEmail("simontabligan@email.com");
+		student8.setId(8);
 		
-		eventServiceImpl.addStudentToEvent(student7,1);	// Re-adding student ID 7 to an event that he/she is already on.
-		assertEquals(1,student_list_for_event_id_1.size());	// Since the student is already on the event, the student list size for event 
-																// id 1 should NOT change and is still = 1.
-															// However, addStudentToEvent method does NOT have this check that is this
-																// assert will fail.
+		// Create Student 3
+		Student student9 = new Student();
+		student9.setFirstName("Xuan");
+		student9.setLastName("Fei");
+		student9.setEmail("xuanfei@email.com");
+		student9.setId(9);
+		
+		eventServiceImpl.addStudentToEvent(student7,1);	// Add student ID 7 to event ID 1
+		assertEquals(1,eventServiceImpl.getPastEvents().get(0).getStudents().size());	// It is okay to have 1 student by her/himself
+																							// on an event.
+		
+		eventServiceImpl.addStudentToEvent(student8,1);	// Add student ID 8 to event ID 1
+		assertEquals(2,eventServiceImpl.getPastEvents().get(0).getStudents().size());	// It is okay to have 2 students on an event.
+		
+		eventServiceImpl.addStudentToEvent(student9,1);	// Add student ID 9 to event ID 1
+		assertEquals(2,eventServiceImpl.getPastEvents().get(0).getStudents().size());	// It is NOT okay to have 2 students on an event.
+																							// Therefore, we should not be able to add student9
+																							// to event ID 1, leading to its # student count to
+																							// be remaining at 2. However, in this case our method
+																							// fails to do so. 
 	}
 
 	// Test cases for "updateEventName" method.
@@ -165,16 +183,18 @@ class EventServiceImplTest {
 	// Test cases for "getPastEvents" method. - This method is guaranteed by the prompt to have no bug.
 	@Test	//COVERAGE purpose - test on getPastEvents
 	void testgetPastEvents() {
+		// Create a student
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
 		student7.setLastName("Nguyen");
 		student7.setEmail("nhannguyen@email.com");
 		student7.setId(7);
-		//Create Event1
+		
+		//Create Event1 (already in the past)
 		Event event1 = new Event();
 		event1.setEventID(1);
 		Calendar cal1 = Calendar.getInstance();
-		cal1.set(Calendar.YEAR, 2010);
+		cal1.set(Calendar.YEAR, 2010);	// This event 1 happened in the past.
 		cal1.set(Calendar.MONTH, Calendar.JANUARY);
 		cal1.set(Calendar.DAY_OF_MONTH, 1);
 		event1.setDate(cal1.getTime());
@@ -191,14 +211,14 @@ class EventServiceImplTest {
 	
 
 	// Test cases for "addStudentToEvent" method.
-	@Test	// Test addStudentToEvent goodCase1 - student to be added is NOT on the event yet, and not student has been on the event
+	@Test	// Test addStudentToEvent goodCase1 - add student to an event in which no student has been on it yet.
 				// this is for edge coverage purpose
 	void testaddStudentToEvent_goodCase1() throws Exception {		
 		//Create Event1 (PAST) - to utilize function getPastEvents since we know it is 100% bug free (told by prompt).
 		Event event1 = new Event();
 		event1.setEventID(1);
 		Calendar cal1 = Calendar.getInstance();
-		cal1.set(Calendar.YEAR, 2010);
+		cal1.set(Calendar.YEAR, 2010);		// The event 1 happened in the past.
 		cal1.set(Calendar.MONTH, Calendar.JANUARY);
 		cal1.set(Calendar.DAY_OF_MONTH, 1);
 		event1.setDate(cal1.getTime());
@@ -207,6 +227,7 @@ class EventServiceImplTest {
 		event1.setLocation(location1);
 		DataStorage.eventData.put(event1.getEventID(), event1);
 		
+		// Create a student
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
 		student7.setLastName("Nguyen");
@@ -214,6 +235,7 @@ class EventServiceImplTest {
 		student7.setId(7);
 		eventServiceImpl.addStudentToEvent(student7,1);	// Add student ID 1 to event ID 1
 		
+		// Confirm that the student with ID 7 was added successfully added to event ID 1 by the method "addStudentToEvent".
 		List<Student> event_2_student_list = eventServiceImpl.getPastEvents().get(0).getStudents();
 		Student student_just_added = event_2_student_list.get(0);
 		assertEquals("Nhan",student_just_added.getFirstName());
@@ -222,14 +244,14 @@ class EventServiceImplTest {
 		assertEquals(7,student_just_added.getId());
 	}
 	
-	@Test	//Test addStudentToEvent goodCase2 - student to be added is NOT on the event yet, and 1 student has already been on the event
+	@Test	//Test addStudentToEvent goodCase2 - add student to an event in which 1 other student has already been on the event
 	// this is for edge coverage purpose
 	void testaddStudentToEvent_goodCase2() throws Exception {		
 		//Create Event1 (PAST) - to utilize function getPastEvents since we know it is 100% bug free (told by prompt).
 		Event event1 = new Event();
 		event1.setEventID(1);
 		Calendar cal1 = Calendar.getInstance();
-		cal1.set(Calendar.YEAR, 2010);
+		cal1.set(Calendar.YEAR, 2010);		// This event already happened in the past.
 		cal1.set(Calendar.MONTH, Calendar.JANUARY);
 		cal1.set(Calendar.DAY_OF_MONTH, 1);
 		event1.setDate(cal1.getTime());
@@ -238,6 +260,7 @@ class EventServiceImplTest {
 		event1.setLocation(location1);
 		DataStorage.eventData.put(event1.getEventID(), event1);
 
+		// Create Student 1
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
 		student7.setLastName("Nguyen");
@@ -245,6 +268,7 @@ class EventServiceImplTest {
 		student7.setId(7);
 		eventServiceImpl.addStudentToEvent(student7,1);	// Add student ID 7 to event ID 1
 
+		// Create Student 2
 		Student student8 = new Student();
 		student8.setFirstName("Simon");
 		student8.setLastName("Tabligan");
@@ -252,7 +276,9 @@ class EventServiceImplTest {
 		student8.setId(8);
 		eventServiceImpl.addStudentToEvent(student8,1);	// Add student ID 8 to event ID 1
 		
+		// Confirm that the students are added onto the event successfully
 		List<Student> event_2_student_list = eventServiceImpl.getPastEvents().get(0).getStudents();
+		assertEquals(2, event_2_student_list.size());
 		
 		Student student_just_added_1 = event_2_student_list.get(0);
 		assertEquals("Nhan",student_just_added_1.getFirstName());
@@ -269,6 +295,7 @@ class EventServiceImplTest {
 	
 	@Test //Test addStudentToEvent goodCase3 - this is to test that the function gives out exception when the event does NOT exist
 	void testaddStudentToEvent_goodCase3() throws Exception {
+		// Create a student
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
 		student7.setLastName("Nguyen");
