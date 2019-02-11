@@ -65,14 +65,15 @@ class EventServiceImplTest {
 	}
 
 	@Test	// ACTUAL BUG 1: Suppose to work for name length =20 but it fails
-	void BUG_1_testupdateEventName_NameLength20_GoodCase() throws StudyUpException{
+	void BUG_1_testupdateEventName_NameLength20_goodCase() throws StudyUpException{
 		int eventID = 2;
 		eventServiceImpl.updateEventName(eventID, "12345678912345678912");
 		assertEquals("12345678912345678912", DataStorage.eventData.get(eventID).getName());
 	}
 	
 	@Test	//ACTUAL BUG 2: Missing if condition to eliminate out past events in the function
-	void BUG_2_testgetActiveEvents_GoodCase() {
+	void BUG_2_testgetActiveEvents_ShouldExcludePastEvent1_goodCase() {
+		//Create Student
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
 		student7.setLastName("Nguyen");
@@ -95,11 +96,11 @@ class EventServiceImplTest {
 		DataStorage.eventData.put(event1.getEventID(), event1);
 		
 		List<Event> active_event_list = eventServiceImpl.getActiveEvents();
-		assertEquals(1, active_event_list.size());
+		assertEquals(1, active_event_list.size());	// This fails because it did not exclude the PAST event 1 that we just created.
 	}
 	
 	@Test	//ACTUAL BUG 3: missing conditions to ensure that there are at most 2 students for each event.
-	void BUG_3_testaddStudentToEvent_badCase() throws Exception {
+	void BUG_3_testaddStudentToEvent_ShouldRejectAddingThirdStudent_badCase() throws Exception {
 		//Create Event1 (PAST) - to utilize function getPastEvents since we know it is 100% bug free (told by prompt).
 		Event event1 = new Event();
 		event1.setEventID(1);
@@ -143,15 +144,15 @@ class EventServiceImplTest {
 		
 		eventServiceImpl.addStudentToEvent(student9,1);	// Add student ID 9 to event ID 1
 		assertEquals(2,eventServiceImpl.getPastEvents().get(0).getStudents().size());	// It is NOT okay to have 2 students on an event.
-																							// Therefore, we should not be able to add student9
+																							// Therefore, we should NOT be able to add student9
 																							// to event ID 1, leading to its # student count to
 																							// be remaining at 2. However, in this case our method
 																							// fails to do so. 
 	}
 
 	// Test cases for "updateEventName" method.
-	@Test	// GIVEN
-	void testupdateEventName_WrongEventID_badCase1() {
+	@Test	// Suppose to throw exception for accessing an event that does NOT exist.
+	void testupdateEventName_InvalidEventID_badCase1() {
 		int eventID = 50;
 		Assertions.assertThrows(StudyUpException.class, () -> {
 			eventServiceImpl.updateEventName(eventID, "Renamed Event 50");
@@ -166,23 +167,26 @@ class EventServiceImplTest {
 		  });
 	}
 	
-	@Test	// GIVEN
-	void testupdateEventName_GoodCase() throws StudyUpException {
+	@Test	// This is a good test case, since the new name is only of length 11.
+	void testupdateEventName_NameLength11_goodCase() throws StudyUpException {
 		int eventID = 2;
-		eventServiceImpl.updateEventName(eventID, "Renamed Event 2");
-		assertEquals("Renamed Event 2", DataStorage.eventData.get(eventID).getName());
+		eventServiceImpl.updateEventName(eventID, "NEW Event 2");
+		assertEquals("NEW Event 2", DataStorage.eventData.get(eventID).getName());
 	}
 	
-	@Test	// Test getActiveEvents with inputs that we expect the program will give out valid output
-	void testgetActiveEvents_goodCase() {
+	@Test	// Test getActiveEvents with inputs that we expect the program will give out valid output (event list size 1,
+				// where event1 is the only event in that list.
+	void testgetActiveEvents_ShouldReturnEventsListSizeOf1_goodCase() {
 		List<Event> active_event_list = eventServiceImpl.getActiveEvents();
 		assertEquals(1, active_event_list.size());
 	}
 	
 	
 	// Test cases for "getPastEvents" method. - This method is guaranteed by the prompt to have no bug.
+	// Test getPastEvents with inputs that we expect the program will give out valid output (event list size 1,
+		// where event2 is the only event in that list.
 	@Test	//COVERAGE purpose - test on getPastEvents
-	void testgetPastEvents() {
+	void testgetPastEvents_ShouldReturnEventsListOfSize1_goodCase() {
 		// Create a student
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
@@ -212,8 +216,8 @@ class EventServiceImplTest {
 
 	// Test cases for "addStudentToEvent" method.
 	@Test	// Test addStudentToEvent goodCase1 - add student to an event in which no student has been on it yet.
-				// this is for edge coverage purpose
-	void testaddStudentToEvent_goodCase1() throws Exception {		
+				// this is for edge COVERAGE purpose
+	void testaddStudentToEvent_ShouldSucessfullyAddAnotherStudent_goodCase1() throws Exception {		
 		//Create Event1 (PAST) - to utilize function getPastEvents since we know it is 100% bug free (told by prompt).
 		Event event1 = new Event();
 		event1.setEventID(1);
@@ -246,7 +250,7 @@ class EventServiceImplTest {
 	
 	@Test	//Test addStudentToEvent goodCase2 - add student to an event in which 1 other student has already been on the event
 	// this is for edge coverage purpose
-	void testaddStudentToEvent_goodCase2() throws Exception {		
+	void testaddStudentToEvent_ShouldSucessfullyAddAnotherStudent_goodCase2() throws Exception {		
 		//Create Event1 (PAST) - to utilize function getPastEvents since we know it is 100% bug free (told by prompt).
 		Event event1 = new Event();
 		event1.setEventID(1);
@@ -294,7 +298,7 @@ class EventServiceImplTest {
 	}
 	
 	@Test //Test addStudentToEvent goodCase3 - this is to test that the function gives out exception when the event does NOT exist
-	void testaddStudentToEvent_goodCase3() throws Exception {
+	void testaddStudentToEvent_InvalidEventID_badCase1() throws Exception {
 		// Create a student
 		Student student7 = new Student();
 		student7.setFirstName("Nhan");
@@ -310,7 +314,7 @@ class EventServiceImplTest {
 	
 	// Test cases for "deleteEvent" method. - This method is guaranteed by the prompt to have no bug.
 	@Test	// COVERAGE purpose - test on deleteEvent
-	void testdeleteEvent_goodCase() {
+	void testdeleteEvent_ShouldSucessfullyDeleteEvent_goodCase() {
 		int eventID = 2;
 		eventServiceImpl.deleteEvent(eventID);
 		assertEquals(null, eventServiceImpl.deleteEvent(eventID));	// If the event is already deleted and you try to delete it again,
