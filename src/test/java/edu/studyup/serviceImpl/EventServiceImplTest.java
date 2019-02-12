@@ -67,8 +67,7 @@ class EventServiceImplTest {
 	@Test	// ACTUAL BUG 1: Suppose to work for name length =20 but it fails
 	void BUG_1_testupdateEventName_NameLength20_goodCase() throws StudyUpException{
 		int eventID = 2;
-		eventServiceImpl.updateEventName(eventID, "12345678912345678912");
-		assertEquals("12345678912345678912", DataStorage.eventData.get(eventID).getName());
+		assertDoesNotThrow(() -> eventServiceImpl.updateEventName(eventID, "12345678912345678912"));
 	}
 	
 	@Test	//ACTUAL BUG 2: Missing if condition to eliminate out past events in the function
