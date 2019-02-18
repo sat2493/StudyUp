@@ -37,13 +37,15 @@ public class Lookup {
 		return new Location(lat, lon, bounds);
 	}
 
+	//FIXED BUG #1: Reliance on default encoding
+	//SOLUTION: add "UTF-8" as parameter for InputStreamReader
 	private static JSONArray queryURL(String query) {
 		JSONArray results = new JSONArray();
 		try {
 			String urlString = "https://nominatim.openstreetmap.org/search?q=" + URLEncoder.encode(query, "UTF-8")
 					+ "&format=json";
 			URL url = new URL(urlString);
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()))) {
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream(), "UTF-8"))) {
 				StringBuilder sb = new StringBuilder();
 				int cp;
 				while ((cp = in.read()) != -1) {

@@ -29,25 +29,29 @@ public class EventServiceImpl implements EventService {
 		return event;
 	}
 
+	//BUG #2: Inefficient use of keySet iterator
+	//SOLUTION: use entrySet iterator
 	@Override
 	public List<Event> getActiveEvents() {
 		Map<Integer, Event> eventData = DataStorage.eventData;
 		List<Event> activeEvents = new ArrayList<>();
 		
-		for (Integer key : eventData.keySet()) {
-			Event ithEvent= eventData.get(key);
+		for (Map.Entry<Integer, Event> key : eventData.entrySet()) {
+			Event ithEvent= key.getValue();
 			activeEvents.add(ithEvent);
 		}
 		return activeEvents;
 	}
 
+	//BUG #3: Inefficient use of keySet iterator
+	//SOLUTION: use entrySet iterator
 	@Override
 	public List<Event> getPastEvents() {
 		Map<Integer, Event> eventData = DataStorage.eventData;
 		List<Event> pastEvents = new ArrayList<>();
 		
-		for (Integer key : eventData.keySet()) {
-			Event ithEvent= eventData.get(key);
+		for (Map.Entry<Integer, Event> key : eventData.entrySet()) {
+			Event ithEvent= key.getValue();
 			// Checks if an event date is before today, if yes, then add to the past event list.
 			if(ithEvent.getDate().before(new Date())) {
 				pastEvents.add(ithEvent);
