@@ -45,12 +45,22 @@ public class Event {
 		this.students = students;
 	}
 
+	// FIXED BUG #4: Fixing exposures of the internal representation of the object
+		// SOLUTION: use clone() instead
 	public Date getDate() {
-		return date;
+		return date == null ? null : (Date) date.clone();
 	}
 
+	// FIXED BUG #5: Fixing the storages of a reference to an externally mutable object into the internal representation of the object
+		// SOLUTION: use new Date(date.getTime()) instead of directly set the date.
 	public void setDate(Date date) {
-		this.date = date;
+		if (date == null) {
+			this.date = null;
+		}
+		
+		else {
+			this.date = new Date(date.getTime());
+		}
 	}
 
 	public int getEventID() {
