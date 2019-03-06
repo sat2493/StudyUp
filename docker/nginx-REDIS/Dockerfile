@@ -13,6 +13,10 @@ RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 COPY docker-entrypoint.sh /root/
 RUN chmod +x /root/docker-entrypoint.sh
 
+# Copy the hotswap.sh script (and give exec priviledges on it)
+COPY hotswap.sh /root/
+RUN chmod +x /root/hotswap.sh
+
 # Invoke this script the moment the container comes up
 ENTRYPOINT [ "/root/docker-entrypoint.sh" ]
 
