@@ -9,7 +9,7 @@ Table of contents
    * [Tools](#Tools)
 <!--te-->
 
-#Introduction
+# Introduction
 
 This project is a list of event scheduling services bundled into a Docker container that communicates with another Redis container through a reverse Nginx proxy. The server is hosted on the Google Cloud environment using virtual machines. 
 
